@@ -1,3 +1,5 @@
+
+
 -- 秒杀商品表
 CREATE TABLE `seckill_item` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '秒杀商品ID',
