@@ -13,17 +13,17 @@ public class StockFlow {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 主键自增
     private Long id;
     @Column(name = "item_id", length = 100)
-    private String itemId;
-    @Column(name = "order_id", length = 50)
+    private Integer itemId;
+    @Column(name = "order_id", length = 32)
     private String orderId;
-    @Column(name = "change_amount", length = 50)
-    private String changeAmount;
-    @Column(name = "current_stock", length = 50)
-    private String currentStock;
-    @Column(name = "type", length = 50)
-    private String type;
-    @Column(name = "serial_number", length = 50)
+    @Column(name = "change_amount")
+    private Integer changeAmount;
+    @Column(name = "current_stock")
+    private Integer currentStock;
+    @Column(name = "type")
+    private Integer type;
+    @Column(name = "serial_number", length = 64)
     private String serialNumber;
-    @Column(name = "create_time", length = 50)
+    @Column(name = "create_time")
     private LocalDateTime createTime;
 }

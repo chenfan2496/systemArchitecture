@@ -61,19 +61,19 @@ public class OrderConsumer {
         // 创建订单记录
         SeckillOrder order = new SeckillOrder();
         order.setId(Long.getLong(orderId));
-        order.setUserId(userId);
-        order.setItemId(itemId);
-        order.setStatus("0");
+        order.setUserId(Integer.valueOf(userId));
+        order.setItemId(Integer.valueOf(itemId));
+        order.setStatus(Integer.valueOf("0"));
         order.setSerialNumber(serialNumber);
         orderRepository.save(order);
 
         // 记录库存流水
         StockFlow stockFlow = new StockFlow();
-        stockFlow.setItemId(itemId);
+        stockFlow.setItemId(Integer.valueOf(itemId));
         stockFlow.setOrderId(orderId);
-        stockFlow.setChangeAmount("-1");
-        stockFlow.setCurrentStock(redisStockService.getRedisStock(itemId).toString());
-        stockFlow.setType("1");
+        stockFlow.setChangeAmount(-1);
+        stockFlow.setCurrentStock(redisStockService.getRedisStock(itemId));
+        stockFlow.setType(Integer.valueOf(itemId));
         stockFlow.setSerialNumber(serialNumber);
         stockFlowRepository.save(stockFlow);
 

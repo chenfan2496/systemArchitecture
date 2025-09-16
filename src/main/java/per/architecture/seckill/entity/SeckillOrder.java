@@ -12,18 +12,16 @@ public class SeckillOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 主键自增
     private Long id;
-    @Column(name = "name", length = 100)
-    private String name;
-    @Column(name = "user_id", length = 50)
-    private String userId;
-    @Column(name = "item_id", length = 50)
-    private String itemId;
-    @Column(name = "status", length = 50)
-    private String status;
-    @Column(name = "serial_number", length = 50)
+    @Column(name = "user_id")
+    private Integer userId;
+    @Column(name = "item_id")
+    private Integer itemId;
+    @Column(name = "status")
+    private Integer status;
+    @Column(name = "serial_number", length = 64)
     private String serialNumber;
-    @Column(name = "create_time", length = 50)
+    @Column(name = "create_time")
     private LocalDateTime createTime;
-    @Column(name = "update_time", length = 50)
+    @Column(name = "update_time")
     private LocalDateTime updateTime;
 }

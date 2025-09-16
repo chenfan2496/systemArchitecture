@@ -19,11 +19,15 @@
 
 
   <properties>
-    <java.version>11</java.version>
-    <caffeine.version>3.1.2</caffeine.version>
+    <java.version>8</java.version>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>2.9.3</version> <!-- 兼容Java 8的版本 -->
+    </dependency>
     <!-- Spring Boot 核心 -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -40,13 +44,6 @@
     <dependency>
       <groupId>org.springframework.kafka</groupId>
       <artifactId>spring-kafka</artifactId>
-    </dependency>
-
-    <!-- 本地缓存 Caffeine -->
-    <dependency>
-      <groupId>com.github.ben-manes.caffeine</groupId>
-      <artifactId>caffeine</artifactId>
-      <version>${caffeine.version}</version>
     </dependency>
 
     <!-- 数据库 -->
