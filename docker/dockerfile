@@ -1,0 +1,8 @@
+FROM openjdk:17-jre-slim
+
+WORKDIR /app
+
+COPY target/my-app.jar app.jar
+
+# 声明应用运行的端口（与实际应用端口一致）[1,2](@ref)
+EXPOSE 8080

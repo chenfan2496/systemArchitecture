@@ -67,7 +67,6 @@ public class SeckillService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-
         return SeckillResult.SUCCESS;
     }
-    }
+}

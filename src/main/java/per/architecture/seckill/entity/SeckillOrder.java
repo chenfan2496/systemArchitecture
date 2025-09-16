@@ -1,10 +1,13 @@
 package per.architecture.seckill.entity;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "seckill_item")
+@Data
 public class SeckillOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 主键自增

@@ -44,3 +44,46 @@ CREATE TABLE `stock_flow` (
   KEY `idx_item` (`item_id`),
   KEY `idx_serial` (`serial_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='库存流水表';
+
+
+DELIMITER $$
+CREATE PROCEDURE GenerateSeckillItems()
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    DECLARE batch_size INT DEFAULT 1000; -- 每1000条提交一次，避免大事务
+    SET autocommit = 0; -- 关闭自动提交提升性能
+
+    WHILE i < 100000 DO
+        INSERT INTO seckill_item (
+            item_id,
+            item_name,
+            original_price,
+            seckill_price,
+            stock_count,
+            start_time,
+            end_time
+        ) VALUES (
+            i, -- item_id 从0到99999
+            CONCAT('秒杀商品-', i), -- 商品名称
+            ROUND(RAND() * 1000 + 100, 2), -- 原价: 100.00 ~ 1100.00
+            ROUND(RAND() * 900 + 100, 2), -- 秒杀价: 100.00 ~ 1000.00
+            FLOOR(RAND() * 1000), -- 库存: 0 ~ 999
+            NOW() - INTERVAL FLOOR(RAND() * 365) DAY, -- 开始时间: 过去365天内随机一天
+            NOW() + INTERVAL FLOOR(RAND() * 365) DAY  -- 结束时间: 未来365天内随机一天
+        );
+        SET i = i + 1;
+
+        -- 分批提交
+        IF i % batch_size = 0 THEN
+            COMMIT;
+        END IF;
+    END WHILE;
+
+    COMMIT; -- 提交最终批次
+    SET autocommit = 1; -- 恢复自动提交
+END
+$$
+DELIMITER ;
+
+-- 调用存储过程生成数据
+CALL GenerateSeckillItems();
