@@ -19,12 +19,12 @@ public class SeckillItem {
     private BigDecimal seckillPrice;
     @Column(name = "stock_count")
     private Integer stockCount;
-    @Column(name = "start_time")
+    @Column(name = "start_time",columnDefinition = "datetime")
     private String startTime;
-    @Column(name = "end_time")
+    @Column(name = "end_time",columnDefinition = "datetime")
     private LocalDateTime endTime;
-    @Column(name = "create_time")
+    @Column(name = "create_time",columnDefinition = "datetime")
     private LocalDateTime createdTime;
-    @Column(name = "update_time")
+    @Column(name = "update_time",columnDefinition = "datetime")
     private LocalDateTime updatedTime;
 }

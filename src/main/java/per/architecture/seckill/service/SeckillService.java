@@ -50,7 +50,7 @@ public class SeckillService {
         if (!redisSuccess) {
             // Redis扣减失败，恢复本地缓存
             stockCacheService.updateLocalCache(itemId,
-                    redisStockService.getRedisStock(itemId));
+                    redisStockService.getRedisStock(Long.getLong(itemId)));
             deduplicationService.removeSerialRecord(serialNumber);
             return SeckillResult.OUT_OF_STOCK;
         }

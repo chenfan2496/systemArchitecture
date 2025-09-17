@@ -17,7 +17,7 @@ CREATE TABLE `seckill_item` (
 
 -- 秒杀订单表
 CREATE TABLE `seckill_order` (
-  `id` varchar(32) NOT NULL COMMENT '订单ID',
+  `id` bigint(20) NOT NULL COMMENT '订单ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
   `item_id` bigint(20) NOT NULL COMMENT '秒杀商品ID',
   `amount` decimal(10,2) NOT NULL COMMENT '支付金额',

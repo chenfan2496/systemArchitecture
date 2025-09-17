@@ -35,8 +35,8 @@ public class OrderConsumer {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> data = mapper.readValue(message, Map.class);
 
-            String itemId = data.get("itemId");
-            String userId = data.get("userId");
+            Long itemId = Long.getLong(data.get("itemId"));
+            Long userId = Long.getLong(data.get("userId"));
             String serialNumber = data.get("serialNumber");
             // 检查订单是否已存在（幂等性保证）
             if (orderRepository.findBySerialNumber(serialNumber).isPresent()) {
@@ -55,32 +55,32 @@ public class OrderConsumer {
      * 创建订单（数据库操作）[3](@ref)
      */
     @Transactional
-    public void createOrder(String itemId, String userId, String serialNumber) {
+    public void createOrder(Long itemId, Long userId, String serialNumber) {
         // 生成订单ID
         String orderId = generateOrderId(userId);
         // 创建订单记录
         SeckillOrder order = new SeckillOrder();
         order.setId(Long.getLong(orderId));
-        order.setUserId(Integer.valueOf(userId));
-        order.setItemId(Integer.valueOf(itemId));
+        order.setUserId(userId);
+        order.setItemId(itemId);
         order.setStatus(Integer.valueOf("0"));
         order.setSerialNumber(serialNumber);
         orderRepository.save(order);
 
         // 记录库存流水
         StockFlow stockFlow = new StockFlow();
-        stockFlow.setItemId(Integer.valueOf(itemId));
+        stockFlow.setItemId(itemId);
         stockFlow.setOrderId(orderId);
         stockFlow.setChangeAmount(-1);
         stockFlow.setCurrentStock(redisStockService.getRedisStock(itemId));
-        stockFlow.setType(Integer.valueOf(itemId));
+        stockFlow.setType(1);
         stockFlow.setSerialNumber(serialNumber);
         stockFlowRepository.save(stockFlow);
 
         log.info("订单创建成功: {}", orderId);
     }
 
-    private String generateOrderId(String userId) {
+    private String generateOrderId(Long userId) {
         return System.currentTimeMillis() +
                 String.format("%06d", Math.abs(userId.hashCode()) % 1000000);
     }
