@@ -35,13 +35,8 @@ public class SeckillService {
         if(!deduplicationService.checkAndRecordSerial(serialNumber)) {
             return SeckillResult.REPEAT_REQUEST;
         }
-        Integer localStock = stockCacheService.getStock(itemId);
-        if (localStock <= 0) {
-            deduplicationService.removeSerialRecord(serialNumber);
-            return SeckillResult.OUT_OF_STOCK;
-        }
-        // 3. 更新本地缓存（减少本地库存）
-        if (!stockCacheService.decreaseLocalStock(itemId)) {
+        Boolean localStock = stockCacheService.getStock(itemId);
+        if (!localStock) {
             deduplicationService.removeSerialRecord(serialNumber);
             return SeckillResult.OUT_OF_STOCK;
         }
@@ -49,8 +44,7 @@ public class SeckillService {
         boolean redisSuccess = redisStockService.deductStock(itemId, serialNumber);
         if (!redisSuccess) {
             // Redis扣减失败，恢复本地缓存
-            stockCacheService.updateLocalCache(itemId,
-                    redisStockService.getRedisStock(Long.getLong(itemId)));
+            stockCacheService.updateLocalCache(itemId);
             deduplicationService.removeSerialRecord(serialNumber);
             return SeckillResult.OUT_OF_STOCK;
         }

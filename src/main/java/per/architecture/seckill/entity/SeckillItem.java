@@ -23,7 +23,7 @@ public class SeckillItem {
     @Column(name = "stock_count")
     private Integer stockCount;
     @Column(name = "start_time",columnDefinition = "datetime")
-    private String startTime;
+    private LocalDateTime startTime;
     @Column(name = "end_time",columnDefinition = "datetime")
     private LocalDateTime endTime;
     @Column(name = "create_time",columnDefinition = "datetime")

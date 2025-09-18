@@ -48,7 +48,7 @@ public class RedisStockService {
     /**
      * 获取Redis中的库存
      */
-    public Integer getRedisStock(Long itemId) {
+    public int getRedisStock(String itemId) {
         String key = STOCK_KEY_PREFIX + itemId;
         Object value = redisTemplate.opsForValue().get(key);
         return value != null ? Integer.parseInt(value.toString()) : 0;

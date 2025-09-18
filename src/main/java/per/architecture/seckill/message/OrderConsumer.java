@@ -72,7 +72,7 @@ public class OrderConsumer {
         stockFlow.setItemId(itemId);
         stockFlow.setOrderId(orderId);
         stockFlow.setChangeAmount(-1);
-        stockFlow.setCurrentStock(redisStockService.getRedisStock(itemId));
+        stockFlow.setCurrentStock(redisStockService.getRedisStock(itemId.toString()));
         stockFlow.setType(1);
         stockFlow.setSerialNumber(serialNumber);
         stockFlowRepository.save(stockFlow);

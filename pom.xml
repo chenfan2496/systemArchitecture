@@ -74,6 +74,11 @@
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-core</artifactId>
+      <version>5.8.18</version> <!-- 请检查最新版本 -->
+    </dependency>
   </dependencies>
 
   <build>
