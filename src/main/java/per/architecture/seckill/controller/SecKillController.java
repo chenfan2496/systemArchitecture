@@ -20,8 +20,8 @@ public class SecKillController {
     @PostMapping("/{itemId}")
     public ResponseEntity<SeckillResult> seckill(
             @PathVariable String itemId,
-            @RequestHeader("userId") String userId,
-            @RequestHeader("serialNumber") String serialNumber) {
+            @RequestParam String userId,
+            @RequestParam String serialNumber) {
 
         // 参数验证
         if (StringUtils.isBlank(itemId) || StringUtils.isBlank(userId) || StringUtils.isBlank(serialNumber)) {

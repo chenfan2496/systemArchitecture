@@ -18,7 +18,7 @@ public class RedisStockServiceTest {
     private RedisStockService redisStockService;
     @Test
     public void initStockTest() {
-        redisStockService.initStock("1000",100000);
+        //redisStockService.initStock("1000",100000);
         redisStockService.deductStock("1000", IdUtil.getSnowflakeNextIdStr());
         Assertions.assertEquals(redisStockService.getRedisStock("1000"),99999);
     }

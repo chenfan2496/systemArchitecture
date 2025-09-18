@@ -1,7 +1,9 @@
 package per.architecture.seckill.message;
 
+import cn.hutool.core.util.IdUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +19,11 @@ import java.util.Map;
 @Component
 @Slf4j
 public class OrderConsumer {
+    @Autowired
     private final SeckillOrderRepository orderRepository;
+    @Autowired
     private final StockFlowRepository stockFlowRepository;
+    @Autowired
     private final RedisStockService redisStockService;
 
     public OrderConsumer(SeckillOrderRepository orderRepository,
@@ -34,9 +39,9 @@ public class OrderConsumer {
         try {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> data = mapper.readValue(message, Map.class);
-
-            Long itemId = Long.getLong(data.get("itemId"));
-            Long userId = Long.getLong(data.get("userId"));
+           String itemIdStr = data.get("itemId");
+            Long itemId = Long.parseLong(data.get("itemId"));
+            Long userId = Long.parseLong(data.get("userId"));
             String serialNumber = data.get("serialNumber");
             // 检查订单是否已存在（幂等性保证）
             if (orderRepository.findBySerialNumber(serialNumber).isPresent()) {
@@ -60,7 +65,7 @@ public class OrderConsumer {
         String orderId = generateOrderId(userId);
         // 创建订单记录
         SeckillOrder order = new SeckillOrder();
-        order.setId(Long.getLong(orderId));
+        order.setId(Long.parseLong(orderId));
         order.setUserId(userId);
         order.setItemId(itemId);
         order.setStatus(Integer.valueOf("0"));
@@ -81,7 +86,6 @@ public class OrderConsumer {
     }
 
     private String generateOrderId(Long userId) {
-        return System.currentTimeMillis() +
-                String.format("%06d", Math.abs(userId.hashCode()) % 1000000);
+        return IdUtil.getSnowflakeNextIdStr();
     }
 }

@@ -15,18 +15,18 @@ import java.util.Map;
 @Transactional
 public class SeckillService {
     private final DeduplicationService deduplicationService;
-    private final StockCacheService stockCacheService;
+ //   private final StockCacheService stockCacheService;
     private final RedisStockService redisStockService;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final SeckillOrderRepository orderRepository;
 
     public SeckillService(DeduplicationService deduplicationService,
-                          StockCacheService stockCacheService,
+//                          StockCacheService stockCacheService,
                           RedisStockService redisStockService,
                           KafkaTemplate<String, String> kafkaTemplate,
                           SeckillOrderRepository orderRepository) {
         this.deduplicationService = deduplicationService;
-        this.stockCacheService = stockCacheService;
+//        this.stockCacheService = stockCacheService;
         this.redisStockService = redisStockService;
         this.kafkaTemplate = kafkaTemplate;
         this.orderRepository = orderRepository;
@@ -35,16 +35,17 @@ public class SeckillService {
         if(!deduplicationService.checkAndRecordSerial(serialNumber)) {
             return SeckillResult.REPEAT_REQUEST;
         }
-        Boolean localStock = stockCacheService.getStock(itemId);
-        if (!localStock) {
-            deduplicationService.removeSerialRecord(serialNumber);
-            return SeckillResult.OUT_OF_STOCK;
-        }
+//        Boolean localStock = stockCacheService.getStock(itemId);
+//        if (!localStock) {
+//            deduplicationService.removeSerialRecord(serialNumber);
+////            stockCacheService.updateLocalCache(itemId);
+//            return SeckillResult.OUT_OF_STOCK;
+//        }
         // 4. Redis原子扣减库存[3,6](@ref)
         boolean redisSuccess = redisStockService.deductStock(itemId, serialNumber);
         if (!redisSuccess) {
             // Redis扣减失败，恢复本地缓存
-            stockCacheService.updateLocalCache(itemId);
+//            stockCacheService.updateLocalCache(itemId);
             deduplicationService.removeSerialRecord(serialNumber);
             return SeckillResult.OUT_OF_STOCK;
         }
