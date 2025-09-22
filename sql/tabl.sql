@@ -17,10 +17,9 @@ CREATE TABLE `seckill_item` (
 
 -- 秒杀订单表
 CREATE TABLE `seckill_order` (
-  `id` bigint(20) NOT NULL COMMENT '订单ID',
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '订单ID',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
   `item_id` bigint(20) NOT NULL COMMENT '秒杀商品ID',
-  `amount` decimal(10,2) NOT NULL COMMENT '支付金额',
   `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '状态:0-未支付,1-已支付,2-已取消',
   `serial_number` varchar(64) NOT NULL COMMENT '请求流水号',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

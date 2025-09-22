@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import per.architecture.seckill.constant.SeckillResult;
 import per.architecture.seckill.service.SeckillService;
+import per.architecture.seckill.vo.ItemRequestInVo;
 
 @RestController
 @RequestMapping("/seckill")
@@ -17,18 +18,16 @@ public class SecKillController {
         this.seckillService = seckillService;
     }
 
-    @PostMapping("/{itemId}")
+    @PostMapping("/items")
     public ResponseEntity<SeckillResult> seckill(
-            @PathVariable String itemId,
-            @RequestParam String userId,
-            @RequestParam String serialNumber) {
+            @RequestBody ItemRequestInVo inVo) {
 
         // 参数验证
-        if (StringUtils.isBlank(itemId) || StringUtils.isBlank(userId) || StringUtils.isBlank(serialNumber)) {
+        if (StringUtils.isBlank(inVo.getItemId()) || StringUtils.isBlank(inVo.getUserId()) || StringUtils.isBlank(inVo.getSerialNumber())) {
             return ResponseEntity.badRequest().body(SeckillResult.FAILED);
         }
         // 执行秒杀
-        SeckillResult result = seckillService.executeSeckill(itemId, userId, serialNumber);
+        SeckillResult result = seckillService.executeSeckill(inVo);
         return ResponseEntity.ok(result);
     }
 }

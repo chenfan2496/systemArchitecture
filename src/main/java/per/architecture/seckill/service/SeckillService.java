@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import per.architecture.seckill.constant.SeckillResult;
 import per.architecture.seckill.repository.SeckillOrderRepository;
+import per.architecture.seckill.vo.ItemRequestInVo;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,8 +32,8 @@ public class SeckillService {
         this.kafkaTemplate = kafkaTemplate;
         this.orderRepository = orderRepository;
     }
-    public SeckillResult executeSeckill(String itemId, String userId, String serialNumber) {
-        if(!deduplicationService.checkAndRecordSerial(serialNumber)) {
+    public SeckillResult executeSeckill(ItemRequestInVo invo) {
+        if(!deduplicationService.checkAndRecordSerial(invo.getSerialNumber())) {
             return SeckillResult.REPEAT_REQUEST;
         }
 //        Boolean localStock = stockCacheService.getStock(itemId);
@@ -42,18 +43,18 @@ public class SeckillService {
 //            return SeckillResult.OUT_OF_STOCK;
 //        }
         // 4. Redis原子扣减库存[3,6](@ref)
-        boolean redisSuccess = redisStockService.deductStock(itemId, serialNumber);
+        boolean redisSuccess = redisStockService.deductStock(invo.getItemId(), invo.getSerialNumber());
         if (!redisSuccess) {
             // Redis扣减失败，恢复本地缓存
 //            stockCacheService.updateLocalCache(itemId);
-            deduplicationService.removeSerialRecord(serialNumber);
+            deduplicationService.removeSerialRecord(invo.getSerialNumber());
             return SeckillResult.OUT_OF_STOCK;
         }
         // 5. 发送Kafka消息异步创建订单[3](@ref)
         Map<String, String> message = new HashMap<>();
-        message.put("itemId", itemId);
-        message.put("userId", userId);
-        message.put("serialNumber", serialNumber);
+        message.put("itemId", invo.getItemId());
+        message.put("userId", invo.getItemId());
+        message.put("serialNumber", invo.getSerialNumber());
         message.put("timestamp", String.valueOf(System.currentTimeMillis()));
 
         try {

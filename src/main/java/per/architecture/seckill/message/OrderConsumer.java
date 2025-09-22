@@ -14,6 +14,7 @@ import per.architecture.seckill.repository.StockFlowRepository;
 import per.architecture.seckill.service.RedisStockService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Component
@@ -62,24 +63,28 @@ public class OrderConsumer {
     @Transactional
     public void createOrder(Long itemId, Long userId, String serialNumber) {
         // 生成订单ID
-        String orderId = generateOrderId(userId);
+        Long orderId = IdUtil.getSnowflakeNextId();
         // 创建订单记录
         SeckillOrder order = new SeckillOrder();
-        order.setId(Long.parseLong(orderId));
+        order.setId(orderId);
         order.setUserId(userId);
         order.setItemId(itemId);
         order.setStatus(Integer.valueOf("0"));
         order.setSerialNumber(serialNumber);
+        order.setCreateTime(LocalDateTime.now());
+        order.setUpdateTime(LocalDateTime.now());
         orderRepository.save(order);
-
         // 记录库存流水
         StockFlow stockFlow = new StockFlow();
+        stockFlow.setId(IdUtil.getSnowflakeNextId());
+        stockFlow.setOrderId(serialNumber);
         stockFlow.setItemId(itemId);
-        stockFlow.setOrderId(orderId);
+        stockFlow.setOrderId(orderId.toString());
         stockFlow.setChangeAmount(-1);
         stockFlow.setCurrentStock(redisStockService.getRedisStock(itemId.toString()));
         stockFlow.setType(1);
         stockFlow.setSerialNumber(serialNumber);
+        stockFlow.setCreateTime(LocalDateTime.now());
         stockFlowRepository.save(stockFlow);
 
         log.info("订单创建成功: {}", orderId);
