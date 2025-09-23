@@ -40,7 +40,7 @@ public class OrderConsumer {
         try {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> data = mapper.readValue(message, Map.class);
-           String itemIdStr = data.get("itemId");
+            String itemIdStr = data.get("itemId");
             Long itemId = Long.parseLong(data.get("itemId"));
             Long userId = Long.parseLong(data.get("userId"));
             String serialNumber = data.get("serialNumber");

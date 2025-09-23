@@ -1,5 +1,6 @@
 package per.architecture.seckill.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,6 +18,7 @@ import java.util.Map;
 import static per.architecture.seckill.constant.RedisConstant.STOCK_KEY_PREFIX;
 
 @Service
+@Slf4j
 public class RedisStockService implements InitializingBean {
     private final RedisTemplate<String, Object> redisTemplate;
     @Autowired
@@ -65,6 +67,7 @@ public class RedisStockService implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        log.info("开始加载库存");
         loadCache();
     }
 

@@ -1,7 +1,9 @@
 package per.architecture.seckill.service;
 
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +16,7 @@ import java.util.Map;
 
 @Service
 @Transactional
+@Slf4j
 public class SeckillService {
     private final DeduplicationService deduplicationService;
  //   private final StockCacheService stockCacheService;
@@ -56,11 +59,10 @@ public class SeckillService {
         message.put("userId", invo.getItemId());
         message.put("serialNumber", invo.getSerialNumber());
         message.put("timestamp", String.valueOf(System.currentTimeMillis()));
-
         try {
-            kafkaTemplate.send("seckill-order-topic",
-                    new ObjectMapper().writeValueAsString(message));
-        } catch (JsonProcessingException e) {
+            kafkaTemplate.send("seckill-order-topic", JSON.toJSONString(message));
+        } catch (Exception e) {
+            log.error("kafka 发送数据失败 ",e);
             throw new RuntimeException(e);
         }
         return SeckillResult.SUCCESS;

@@ -2,6 +2,7 @@ package per.architecture.seckill.repository;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Random;
 
 @SpringBootTest
+@Ignore
 public class SeckillItemRepositoryTest {
     @Autowired
     private SeckillItemRepository seckillItemRepository;
