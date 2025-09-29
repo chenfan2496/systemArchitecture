@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # -------------------------------
+  # Redis 集群节点（3主3从）
+  # -------------------------------
+  redis-node1:
+    image: redis:7.2-alpine
+    container_name: redis-node1
+    hostname: redis-node1
+    ports:
+      - "7001:6379"    # 客户端访问端口
+      - "17001:16379"   # 集群总线端口
+    volumes:
+      - redis-data-1:/data
+      - ./redis-conf/cluster.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_CLUSTER_IP=redis-node1
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          memory: 2G
+    networks:
+      - redis-cluster-net
+
+  redis-node2:
+    image: redis:7.2-alpine
+    container_name: redis-node2
+    hostname: redis-node2
+    ports:
+      - "7002:6379"
+      - "17002:16379"
+    volumes:
+      - redis-data-2:/data
+      - ./redis-conf/cluster.conf:/usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_CLUSTER_IP=redis-node2
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+    networks:
+      - redis-cluster-net
+    depends_on:
+      - redis-node1
+
+  # redis-node3 到 redis-node6 配置类似（省略）
+
+  # -------------------------------
+  # 集群初始化服务
+  # -------------------------------
+  cluster-init:
+    image: redis:7.2-alpine
+    depends_on:
+      redis-node1:
+        condition: service_healthy
+      redis-node2:
+        condition: service_healthy
+      redis-node3:
+        condition: service_healthy
+      redis-node4:
+        condition: service_healthy
+      redis-node5:
+        condition: service_healthy
+      redis-node6:
+        condition: service_healthy
+    command: >
+      bash -c "
+      echo 'yes' | redis-cli -a ${REDIS_PASSWORD} --cluster create
+      $$(getent hosts redis-node1 | awk '{ print $$1 }'):6379
+      $$(getent hosts redis-node2 | awk '{ print $$1 }'):6379
+      $$(getent hosts redis-node3 | awk '{ print $$1 }'):6379
+      $$(getent hosts redis-node4 | awk '{ print $$1 }'):6379
+      $$(getent hosts redis-node5 | awk '{ print $$1 }'):6379
+      $$(getent hosts redis-node6 | awk '{ print $$1 }'):6379
+      --cluster-replicas 1
+      "
+    networks:
+      - redis-cluster-net
+
+  # -------------------------------
+  # 监控系统（Prometheus + Redis Exporter）
+  # -------------------------------
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0
+    container_name: redis-exporter
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis-node1:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_EXPORTER_WEB_TELEMETRY_PATH=/metrics
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9121/metrics"]
+    networks:
+      - redis-cluster-net
+    depends_on:
+      - redis-node1
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - redis-cluster-net
+    depends_on:
+      - redis-exporter
+
+# -------------------------------
+# 数据卷和网络配置
+# -------------------------------
+volumes:
+  redis-data-1:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/redis/redis-node1
+  redis-data-2:
+  # 类似配置...
+  # redis-data-3 到 redis-data-6...
+
+networks:
+  redis-cluster-net:
+    driver: bridge
+    attachable: true
+    ipam:
+      config:
+        - subnet: 10.10.0.0/24
+          gateway: 10.10.0.1

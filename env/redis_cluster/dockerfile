@@ -1,0 +1,33 @@
+FROM redis:7.2-alpine AS builder
+
+RUN apk add --no-cache bash tzdata && \
+    mkdir -p /usr/local/etc/redis && \
+    addgroup -S redis && adduser -S -G redis redis && \
+    chown redis:redis /data
+
+RUN mkdir -p /logs /data \
+    && echo "Asia/Shanghai" > /etc/timezone
+
+COPY ./conf/redis.conf /usr/local/etc/redis/redis.conf
+COPY ./scripts/cluster-entrypoint.sh /usr/local/bin/
+COPY ./scripts/healthcheck.sh /healthcheck
+
+# 权限设置
+RUN chmod +x /usr/local/bin/cluster-entrypoint.sh && \
+    chmod +x /healthcheck && \
+    chown -R redis:redis /usr/local/etc/redis && \
+
+# 阶段2：生产镜像
+FROM redis:7.2-alpine
+# 从builder阶段复制文件
+COPY --from=builder /usr/local/etc/redis/ /usr/local/etc/redis/
+COPY --from=builder /usr/local/bin/cluster-entrypoint.sh /usr/local/bin/
+COPY --from=builder /healthcheck /healthcheck
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
+# 运行时配置
+USER redis
+EXPOSE 6379 16379
+HEALTHCHECK --interval=30s --timeout=5s CMD /healthcheck
+ENTRYPOINT ["cluster-entrypoint.sh"]
+CMD ["redis-server", "/usr/local/etc/redis/redis.conf"]
