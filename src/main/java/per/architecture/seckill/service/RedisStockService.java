@@ -1,16 +1,28 @@
 package per.architecture.seckill.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
+import per.architecture.seckill.entity.SeckillItem;
+import per.architecture.seckill.repository.SeckillItemRepository;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static per.architecture.seckill.constant.RedisConstant.STOCK_KEY_PREFIX;
 
 @Service
-public class RedisStockService {
+@Slf4j
+public class RedisStockService implements InitializingBean {
     private final RedisTemplate<String, Object> redisTemplate;
+    @Autowired
+    private SeckillItemRepository seckillItemRepository;
     private static final String SECKILL_SCRIPT =
             "local stockKey = KEYS[1] "+
             "local requested = tonumber(ARGV[1]) " +
@@ -24,15 +36,6 @@ public class RedisStockService {
     public RedisStockService(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
-
-    /**
-     * 初始化Redis库存
-     */
-    public void initStock(String itemId, Integer stock) {
-        String key = STOCK_KEY_PREFIX + itemId;
-        redisTemplate.opsForValue().set(key, stock);
-    }
-
     /**
      * 原子扣减库存
      */
@@ -60,5 +63,23 @@ public class RedisStockService {
     public void increaseStock(String itemId, Integer amount) {
         String key = STOCK_KEY_PREFIX + itemId;
         redisTemplate.opsForValue().increment(key, amount);
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("开始加载库存");
+        loadCache();
+    }
+
+    /**
+     * 初始化item减扣缓存
+     */
+    public void loadCache() {
+        List<SeckillItem> list = seckillItemRepository.findAll();
+        HashMap<String,Integer> maps=new HashMap<>(list.size());
+        for(SeckillItem seckillItem : list) {
+            maps.put(STOCK_KEY_PREFIX + seckillItem.getId(),seckillItem.getStockCount());
+        }
+        redisTemplate.opsForValue().multiSet(maps);
     }
 }

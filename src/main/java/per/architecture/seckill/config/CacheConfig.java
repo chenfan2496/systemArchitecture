@@ -17,7 +17,7 @@ public class CacheConfig {
     private long expireSeconds;
 
     @Bean
-    public Cache<String, Integer> localStockCache() {
+    public Cache<String, Boolean> localStockCache() {
         return Caffeine.newBuilder()
                 .maximumSize(maximumSize)
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)

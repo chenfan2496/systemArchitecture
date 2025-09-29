@@ -1,7 +1,9 @@
 package per.architecture.seckill.message;
 
+import cn.hutool.core.util.IdUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,13 +14,17 @@ import per.architecture.seckill.repository.StockFlowRepository;
 import per.architecture.seckill.service.RedisStockService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Component
 @Slf4j
 public class OrderConsumer {
+    @Autowired
     private final SeckillOrderRepository orderRepository;
+    @Autowired
     private final StockFlowRepository stockFlowRepository;
+    @Autowired
     private final RedisStockService redisStockService;
 
     public OrderConsumer(SeckillOrderRepository orderRepository,
@@ -34,9 +40,9 @@ public class OrderConsumer {
         try {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> data = mapper.readValue(message, Map.class);
-
-            Long itemId = Long.getLong(data.get("itemId"));
-            Long userId = Long.getLong(data.get("userId"));
+            String itemIdStr = data.get("itemId");
+            Long itemId = Long.parseLong(data.get("itemId"));
+            Long userId = Long.parseLong(data.get("userId"));
             String serialNumber = data.get("serialNumber");
             // 检查订单是否已存在（幂等性保证）
             if (orderRepository.findBySerialNumber(serialNumber).isPresent()) {
@@ -57,31 +63,34 @@ public class OrderConsumer {
     @Transactional
     public void createOrder(Long itemId, Long userId, String serialNumber) {
         // 生成订单ID
-        String orderId = generateOrderId(userId);
+        Long orderId = IdUtil.getSnowflakeNextId();
         // 创建订单记录
         SeckillOrder order = new SeckillOrder();
-        order.setId(Long.getLong(orderId));
+        order.setId(orderId);
         order.setUserId(userId);
         order.setItemId(itemId);
         order.setStatus(Integer.valueOf("0"));
         order.setSerialNumber(serialNumber);
+        order.setCreateTime(LocalDateTime.now());
+        order.setUpdateTime(LocalDateTime.now());
         orderRepository.save(order);
-
         // 记录库存流水
         StockFlow stockFlow = new StockFlow();
+        stockFlow.setId(IdUtil.getSnowflakeNextId());
+        stockFlow.setOrderId(serialNumber);
         stockFlow.setItemId(itemId);
-        stockFlow.setOrderId(orderId);
+        stockFlow.setOrderId(orderId.toString());
         stockFlow.setChangeAmount(-1);
         stockFlow.setCurrentStock(redisStockService.getRedisStock(itemId.toString()));
         stockFlow.setType(1);
         stockFlow.setSerialNumber(serialNumber);
+        stockFlow.setCreateTime(LocalDateTime.now());
         stockFlowRepository.save(stockFlow);
 
         log.info("订单创建成功: {}", orderId);
     }
 
     private String generateOrderId(Long userId) {
-        return System.currentTimeMillis() +
-                String.format("%06d", Math.abs(userId.hashCode()) % 1000000);
+        return IdUtil.getSnowflakeNextIdStr();
     }
 }

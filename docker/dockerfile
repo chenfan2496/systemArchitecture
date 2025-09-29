@@ -1,8 +1,19 @@
-FROM openjdk:17-jre-slim
+FROM openjdk:8-jdk-alpine
+MAINTAINER Terrfly
+# 配置环境变量，支持中文。
+ENV LANG=C.UTF-8
+# 设置时区 东八区， 解决日志时间不正确的问题。
+ENV TZ=Asia/Shanghai
+
+# 声明应用运行的端口（与实际应用端口一致）[1,2](@ref)
+EXPOSE 8080
 
 WORKDIR /app
 
-COPY target/my-app.jar app.jar
+VOLUME ["/app/logs/systemArchitecture"]
 
-# 声明应用运行的端口（与实际应用端口一致）[1,2](@ref)
+COPY ./target/systemArchitecture-1.0-SNAPSHOT.jar systemArchitecture-1.0-SNAPSHOT.jar
+
+CMD ["java", "-jar", "systemArchitecture-1.0-SNAPSHOT.jar"]
+
 EXPOSE 8080
